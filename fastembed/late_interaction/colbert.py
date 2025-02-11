@@ -16,6 +16,17 @@ from fastembed.text.onnx_text_model import OnnxTextModel, TextEmbeddingWorker
 
 supported_colbert_models = [
     {
+        "model": "yazge/turkish-colbert-onnx",
+        "dim": 768,
+        "description": "Turkish ColBERT ONNX model",
+        "license": "mit",
+        "size_in_GB": 0.5,
+        "sources": {
+            "hf": "yazge/turkish-colbert-onnx",
+        },
+        "model_file": "onnx/model.onnx",
+    },
+    {
         "model": "colbert-ir/colbertv2.0",
         "dim": 128,
         "description": "Late interaction model",
@@ -43,7 +54,9 @@ supported_colbert_models = [
 class Colbert(LateInteractionTextEmbeddingBase, OnnxTextModel[NumpyArray]):
     QUERY_MARKER_TOKEN_ID = 1
     DOCUMENT_MARKER_TOKEN_ID = 2
-    MIN_QUERY_LENGTH = 31  # it's 32, we add one additional special token in the beginning
+    MIN_QUERY_LENGTH = (
+        31  # it's 32, we add one additional special token in the beginning
+    )
     MASK_TOKEN = "[MASK]"
 
     def _post_process_onnx_output(
@@ -62,7 +75,9 @@ class Colbert(LateInteractionTextEmbeddingBase, OnnxTextModel[NumpyArray]):
                 if token_id in self.skip_list or token_id == self.pad_token_id:
                     output.attention_mask[i, j] = 0
 
-        output.model_output *= np.expand_dims(output.attention_mask, 2).astype(np.float32)
+        output.model_output *= np.expand_dims(output.attention_mask, 2).astype(
+            np.float32
+        )
         norm = np.linalg.norm(output.model_output, ord=2, axis=2, keepdims=True)
         norm_clamped = np.maximum(norm, 1e-12)
         output.model_output /= norm_clamped
@@ -71,7 +86,9 @@ class Colbert(LateInteractionTextEmbeddingBase, OnnxTextModel[NumpyArray]):
     def _preprocess_onnx_input(
         self, onnx_input: dict[str, NumpyArray], is_doc: bool = True, **kwargs: Any
     ) -> dict[str, NumpyArray]:
-        marker_token = self.DOCUMENT_MARKER_TOKEN_ID if is_doc else self.QUERY_MARKER_TOKEN_ID
+        marker_token = (
+            self.DOCUMENT_MARKER_TOKEN_ID if is_doc else self.QUERY_MARKER_TOKEN_ID
+        )
         onnx_input["input_ids"] = np.insert(
             onnx_input["input_ids"].astype(np.int64), 1, marker_token, axis=1
         )
@@ -80,7 +97,9 @@ class Colbert(LateInteractionTextEmbeddingBase, OnnxTextModel[NumpyArray]):
         )
         return onnx_input
 
-    def tokenize(self, documents: list[str], is_doc: bool = True, **kwargs: Any) -> list[Encoding]:
+    def tokenize(
+        self, documents: list[str], is_doc: bool = True, **kwargs: Any
+    ) -> list[Encoding]:
         return (
             self._tokenize_documents(documents=documents)
             if is_doc
@@ -240,7 +259,9 @@ class Colbert(LateInteractionTextEmbeddingBase, OnnxTextModel[NumpyArray]):
             **kwargs,
         )
 
-    def query_embed(self, query: Union[str, Iterable[str]], **kwargs: Any) -> Iterable[NumpyArray]:
+    def query_embed(
+        self, query: Union[str, Iterable[str]], **kwargs: Any
+    ) -> Iterable[NumpyArray]:
         if isinstance(query, str):
             query = [query]
 
