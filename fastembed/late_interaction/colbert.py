@@ -17,7 +17,7 @@ from fastembed.text.onnx_text_model import OnnxTextModel, TextEmbeddingWorker
 supported_colbert_models = [
     {
         "model": "yazge/turkish-colbert-onnx",
-        "dim": 128,
+        "dim": 768,
         "description": "Turkish ColBERT ONNX model",
         "license": "mit",
         "size_in_GB": 0.5,
