@@ -83,19 +83,14 @@ class Colbert(LateInteractionTextEmbeddingBase, OnnxTextModel[NumpyArray]):
         output.model_output /= norm_clamped
         return output.model_output.astype(np.float32)
 
-    def _preprocess_onnx_input(
-        self, onnx_input: dict[str, NumpyArray], is_doc: bool = True, **kwargs: Any
-    ) -> dict[str, NumpyArray]:
-        marker_token = (
-            self.DOCUMENT_MARKER_TOKEN_ID if is_doc else self.QUERY_MARKER_TOKEN_ID
-        )
-        onnx_input["input_ids"] = np.insert(
-            onnx_input["input_ids"].astype(np.int64), 1, marker_token, axis=1
-        )
-        onnx_input["attention_mask"] = np.insert(
-            onnx_input["attention_mask"].astype(np.int64), 1, 1, axis=1
-        )
-        return onnx_input
+
+def _preprocess_onnx_input(
+    self, onnx_input: dict[str, NumpyArray], is_doc: bool = True, **kwargs: Any
+) -> dict[str, NumpyArray]:
+    # Marker token eklemesi yapılmıyor; inputlar doğrudan modele gönderiliyor.
+    onnx_input["input_ids"] = onnx_input["input_ids"].astype(np.int64)
+    onnx_input["attention_mask"] = onnx_input["attention_mask"].astype(np.int64)
+    return onnx_input
 
     def tokenize(
         self, documents: list[str], is_doc: bool = True, **kwargs: Any
